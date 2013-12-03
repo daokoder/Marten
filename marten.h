@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef MONGOOSE_HEADER_INCLUDED
-#define  MONGOOSE_HEADER_INCLUDED
+#ifndef MARTEN_HEADER_INCLUDED
+#define  MARTEN_HEADER_INCLUDED
 
 #include <stdio.h>
 #include <stddef.h>
@@ -155,6 +155,7 @@ struct mg_context *mg_start(const struct mg_callbacks *callbacks,
                             void *user_data,
                             const char **configuration_options);
 
+void mg_wait(struct mg_context *ctx);
 
 // Stop the web server.
 //
@@ -383,4 +384,4 @@ char *mg_md5(char buf[33], ...);
 }
 #endif // __cplusplus
 
-#endif // MONGOOSE_HEADER_INCLUDED
+#endif // MARTEN_HEADER_INCLUDED

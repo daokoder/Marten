@@ -247,9 +247,9 @@ typedef int SOCKET;
 
 #endif // End of Windows and UNIX specific includes
 
-#include "mongoose.h"
+#include "marten.h"
 
-#define MONGOOSE_VERSION "3.9"
+#define MARTEN_VERSION "3.9"
 #define PASSWORDS_FILE_NAME ".htpasswd"
 #define CGI_ENVIRONMENT_SIZE 4096
 #define MAX_CGI_ENVIR_VARS 64
@@ -666,7 +666,7 @@ static struct mg_connection *fc(struct mg_context *ctx) {
 }
 
 const char *mg_version(void) {
-  return MONGOOSE_VERSION;
+  return MARTEN_VERSION;
 }
 
 struct mg_request_info *mg_get_request_info(struct mg_connection *conn) {
@@ -5345,6 +5345,13 @@ static void free_context(struct mg_context *ctx) {
 
   // Deallocate context itself
   free(ctx);
+}
+
+void mg_wait(struct mg_context *ctx) {
+  // Wait until mg_fini() stops
+  while (ctx->stop_flag != 2) {
+    (void) mg_sleep(10);
+  }
 }
 
 void mg_stop(struct mg_context *ctx) {

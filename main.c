@@ -35,7 +35,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#include "mongoose.h"
+#include "marten.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -70,10 +70,10 @@
 static int exit_flag;
 static char server_name[40];        // Set by init_server_name()
 static char config_file[PATH_MAX];  // Set by process_command_line_arguments()
-static struct mg_context *ctx;      // Set by start_mongoose()
+static struct mg_context *ctx;      // Set by start_marten()
 
 #if !defined(CONFIG_FILE)
-#define CONFIG_FILE "mongoose.conf"
+#define CONFIG_FILE "marten.conf"
 #endif /* !CONFIG_FILE */
 
 static void WINCDECL signal_handler(int sig_num) {
@@ -104,9 +104,9 @@ static void show_usage_and_exit(void) {
   fprintf(stderr, "Mongoose version %s (c) Sergey Lyubka, built on %s\n",
           mg_version(), __DATE__);
   fprintf(stderr, "Usage:\n");
-  fprintf(stderr, "  mongoose -A <htpasswd_file> <realm> <user> <passwd>\n");
-  fprintf(stderr, "  mongoose [config_file]\n");
-  fprintf(stderr, "  mongoose [-option value ...]\n");
+  fprintf(stderr, "  marten -A <htpasswd_file> <realm> <user> <passwd>\n");
+  fprintf(stderr, "  marten [config_file]\n");
+  fprintf(stderr, "  marten [-option value ...]\n");
   fprintf(stderr, "\nOPTIONS:\n");
 
   names = mg_get_valid_option_names();
@@ -121,7 +121,7 @@ static void show_usage_and_exit(void) {
 static const char *config_file_top_comment =
 "# Mongoose web server configuration file.\n"
 "# For detailed description of every option, visit\n"
-"# https://github.com/valenok/mongoose/blob/master/UserManual.md\n"
+"# https://github.com/daokoder/marten/blob/master/UserManual.md\n"
 "# Lines starting with '#' and empty lines are ignored.\n"
 "# To make a change, remove leading '#', modify option's value,\n"
 "# save this file and then restart Mongoose.\n\n";
@@ -296,13 +296,13 @@ static void verify_existence(char **options, const char *option_name,
   if (path != NULL && (stat(path, &st) != 0 ||
                        ((S_ISDIR(st.st_mode) ? 1 : 0) != must_be_dir))) {
     die("Invalid path for %s: [%s]: (%s). Make sure that path is either "
-        "absolute, or it is relative to mongoose executable.",
+        "absolute, or it is relative to marten executable.",
         option_name, path, strerror(errno));
   }
 }
 
 static void set_absolute_path(char *options[], const char *option_name,
-                              const char *path_to_mongoose_exe) {
+                              const char *path_to_marten_exe) {
   char path[PATH_MAX], abs[PATH_MAX], *option_value;
   const char *p;
 
@@ -312,14 +312,14 @@ static void set_absolute_path(char *options[], const char *option_name,
   // If option is already set and it is an absolute path,
   // leave it as it is -- it's already absolute.
   if (option_value != NULL && !is_path_absolute(option_value)) {
-    // Not absolute. Use the directory where mongoose executable lives
+    // Not absolute. Use the directory where marten executable lives
     // be the relative directory for everything.
-    // Extract mongoose executable directory into path.
-    if ((p = strrchr(path_to_mongoose_exe, DIRSEP)) == NULL) {
+    // Extract marten executable directory into path.
+    if ((p = strrchr(path_to_marten_exe, DIRSEP)) == NULL) {
       getcwd(path, sizeof(path));
     } else {
-      snprintf(path, sizeof(path), "%.*s", (int) (p - path_to_mongoose_exe),
-               path_to_mongoose_exe);
+      snprintf(path, sizeof(path), "%.*s", (int) (p - path_to_marten_exe),
+               path_to_marten_exe);
     }
 
     strncat(path, "/", sizeof(path) - 1);
@@ -331,7 +331,7 @@ static void set_absolute_path(char *options[], const char *option_name,
   }
 }
 
-static void start_mongoose(int argc, char *argv[]) {
+static void start_marten(int argc, char *argv[]) {
   struct mg_callbacks callbacks;
   char *options[MAX_OPTIONS];
   int i;
@@ -516,7 +516,7 @@ static BOOL CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lP) {
             save_config(hDlg, fp);
             fclose(fp);
             mg_stop(ctx);
-            start_mongoose(__argc, __argv);
+            start_marten(__argc, __argv);
           }
           EnableWindow(GetDlgItem(hDlg, ID_SAVE), TRUE);
           break;
@@ -767,11 +767,11 @@ static LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam,
     case WM_CREATE:
       if (__argv[1] != NULL &&
           !strcmp(__argv[1], service_magic_argument)) {
-        start_mongoose(1, service_argv);
+        start_marten(1, service_argv);
         StartServiceCtrlDispatcher(service_table);
         exit(EXIT_SUCCESS);
       } else {
-        start_mongoose(__argc, __argv);
+        start_marten(__argc, __argv);
         s_uTaskbarRestart = RegisterWindowMessage(TEXT("TaskbarCreated"));
       }
       break;
@@ -900,7 +900,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmdline, int show) {
 
 int main(int argc, char *argv[]) {
   init_server_name();
-  start_mongoose(argc, argv);
+  start_marten(argc, argv);
 
   [NSAutoreleasePool new];
   [NSApplication sharedApplication];
@@ -959,7 +959,7 @@ int main(int argc, char *argv[]) {
 #else
 int main(int argc, char *argv[]) {
   init_server_name();
-  start_mongoose(argc, argv);
+  start_marten(argc, argv);
   printf("%s started on port(s) %s with web root [%s]\n",
          server_name, mg_get_option(ctx, "listening_ports"),
          mg_get_option(ctx, "document_root"));
